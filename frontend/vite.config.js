@@ -5,5 +5,5 @@ export default defineConfig({
   plugins: [
     react(),
   ],
-  base: process.env.NODE_ENV === 'production' ? '/Varuna/' : '/',
+  base: '/', // Use root path for Netlify deployment
 });

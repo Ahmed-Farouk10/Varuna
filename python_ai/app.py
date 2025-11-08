@@ -12,8 +12,10 @@ from datetime import datetime, timedelta
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+# CORS configuration - allow specific origins in production
+allowed_origins = os.getenv('ALLOWED_ORIGINS', '*').split(',')
+CORS(app, origins=allowed_origins)
+socketio = SocketIO(app, cors_allowed_origins=allowed_origins)
 
 # Validate environment variables
 def validate_env():
@@ -379,7 +381,9 @@ def handle_message(data):
 
 if __name__ == '__main__':
     try:
-        socketio.run(app, port=5001, debug=True)
+        port = int(os.getenv('PORT', 5001))
+        debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+        socketio.run(app, host='0.0.0.0', port=port, debug=debug)
     finally:
         weather_service.close()
         irrigation_system.close() 
