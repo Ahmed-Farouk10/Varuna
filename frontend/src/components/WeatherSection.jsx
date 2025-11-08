@@ -112,35 +112,35 @@ const WeatherSection = ({ location }) => {
 
   return (
     <div className="w-full">
-      <h2 className="text-xl font-bold mb-4 text-gray-900 font-cool">🌤️ Weather Information</h2>
+      <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900 font-cool">🌤️ Weather Information</h2>
       {city && (
-        <div className="mb-4 text-gray-800 text-sm font-semibold">📍 {city}</div>
+        <div className="mb-3 sm:mb-4 text-gray-800 text-xs sm:text-sm font-semibold">📍 {city}</div>
       )}
-      <div className="mb-6 bg-gradient-to-br from-purple-50 to-blue-50 p-4 sm:p-6 rounded-lg border-2 border-purple-200">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 font-cool">Current Weather</h3>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <div className="space-y-2">
-            <p className="text-gray-700 font-cool font-semibold">Temperature</p>
-            <p className="text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.temp_c}°C</p>
+      <div className="mb-4 sm:mb-6 bg-gradient-to-br from-purple-50 to-blue-50 p-3 sm:p-4 lg:p-6 rounded-lg border-2 border-purple-200">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 font-cool">Current Weather</h3>
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
+          <div className="space-y-1 sm:space-y-2">
+            <p className="text-gray-700 font-cool font-semibold text-xs sm:text-sm">Temperature</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.temp_c}°C</p>
           </div>
-          <div className="space-y-2">
-            <p className="text-gray-700 font-cool font-semibold">Humidity</p>
-            <p className="text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.humidity}%</p>
+          <div className="space-y-1 sm:space-y-2">
+            <p className="text-gray-700 font-cool font-semibold text-xs sm:text-sm">Humidity</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.humidity}%</p>
           </div>
-          <div className="space-y-2">
-            <p className="text-gray-700 font-cool font-semibold">Precipitation</p>
-            <p className="text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.precip_mm}mm</p>
+          <div className="space-y-1 sm:space-y-2">
+            <p className="text-gray-700 font-cool font-semibold text-xs sm:text-sm">Precipitation</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.precip_mm}mm</p>
           </div>
-          <div className="space-y-2">
-            <p className="text-gray-700 font-cool font-semibold">Condition</p>
-            <p className="text-xl font-semibold text-gray-900 font-cool">{currentWeather.current.condition.text}</p>
+          <div className="space-y-1 sm:space-y-2">
+            <p className="text-gray-700 font-cool font-semibold text-xs sm:text-sm">Condition</p>
+            <p className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 font-cool">{currentWeather.current.condition.text}</p>
           </div>
         </div>
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 font-cool">3-Day Forecast</h3>
-        <div className="h-48 sm:h-64">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 font-cool">3-Day Forecast</h3>
+        <div className="h-40 sm:h-48 lg:h-64">
           <Line 
             data={forecastData} 
             options={{

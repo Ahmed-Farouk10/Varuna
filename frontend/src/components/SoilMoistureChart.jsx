@@ -89,13 +89,13 @@ const SoilMoistureChart = ({ fieldId = 'field_001' }) => {
 
   return (
     <div className="w-full">
-      <h2 className="text-xl font-bold mb-4 text-gray-900 font-cool">🌱 Soil Moisture Trend</h2>
+      <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900 font-cool">🌱 Soil Moisture Trend</h2>
       {error && (
-        <div className="text-yellow-600 text-center p-2 bg-yellow-100 rounded mb-4">
+        <div className="text-yellow-600 text-center p-2 bg-yellow-100 rounded mb-3 sm:mb-4 text-xs sm:text-sm">
           {error}
         </div>
       )}
-      <div className="h-48 sm:h-64">
+      <div className="h-40 sm:h-48 lg:h-64">
         <Line 
           data={chartData} 
           options={{

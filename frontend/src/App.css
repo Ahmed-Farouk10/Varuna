@@ -66,6 +66,17 @@ body {
   font-family: 'cool', Arial, Helvetica, sans-serif;
   scrollbar-width: thin;
   scrollbar-color: gray transparent;
+  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
+}
+
+/* Prevent horizontal overflow */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 h1, h2, h3, h4, h5, h6, .font-cool {

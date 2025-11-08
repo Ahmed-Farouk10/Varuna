@@ -16,7 +16,7 @@ const Layout = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -108,7 +108,7 @@ const Layout = ({ children }) => {
         </header>
 
         {/* Page content */}
-        <main className="py-6 px-4 sm:px-6 lg:px-8">
+        <main className="py-3 sm:py-4 lg:py-6 px-3 sm:px-4 lg:px-6 xl:px-8">
           {children}
         </main>
       </div>

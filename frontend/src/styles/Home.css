@@ -130,13 +130,81 @@ th {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .dashboard {
+    padding: 10px;
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
 
   .irrigation-logs,
   .chat-interface {
     grid-column: span 1;
+  }
+
+  .weather-section,
+  .soil-moisture,
+  .weather-forecast {
+    padding: 15px;
+  }
+
+  .chat-interface {
+    height: 350px;
+    padding: 15px;
+  }
+
+  th, td {
+    padding: 8px;
+    font-size: 0.875rem;
+  }
+
+  .weather-info p {
+    font-size: 0.95em;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard {
+    padding: 8px;
+  }
+
+  .dashboard-grid {
+    gap: 12px;
+  }
+
+  .weather-section,
+  .soil-moisture,
+  .weather-forecast,
+  .irrigation-logs,
+  .chat-interface {
+    padding: 12px;
+  }
+
+  .chat-interface {
+    height: 300px;
+  }
+
+  th, td {
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+
+  .message {
+    max-width: 90%;
+    padding: 8px;
+    font-size: 0.9em;
+  }
+
+  .chat-input input {
+    font-size: 0.9em;
+    padding: 8px;
+  }
+
+  .chat-input button {
+    padding: 8px 16px;
+    font-size: 0.9em;
   }
 }
 
@@ -144,8 +212,15 @@ th {
 .city-form {
   margin-bottom: 20px;
   display: flex;
+  flex-direction: column;
   gap: 10px;
   justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .city-form {
+    flex-direction: row;
+  }
 }
 
 .city-input {
@@ -153,7 +228,14 @@ th {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1em;
-  width: 300px;
+  width: 100%;
+  max-width: 300px;
+}
+
+@media (min-width: 640px) {
+  .city-input {
+    width: 300px;
+  }
 }
 
 .city-submit {
