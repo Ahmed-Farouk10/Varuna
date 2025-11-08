@@ -24,8 +24,8 @@ ChartJS.register(
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
-const WeatherSection = () => {
-  const [city, setCity] = useState('');
+const WeatherSection = ({ location }) => {
+  const [city, setCity] = useState(location || '');
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,8 +49,11 @@ const WeatherSection = () => {
       }
     };
 
-    // Use browser geolocation
-    if (navigator.geolocation) {
+    // Use location prop if provided, otherwise try geolocation
+    if (location) {
+      setCity(location);
+      fetchWeatherData(location);
+    } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
         // Reverse geocode to city using OpenStreetMap Nominatim
@@ -77,7 +80,7 @@ const WeatherSection = () => {
       setCity('London');
       fetchWeatherData('London');
     }
-  }, []);
+  }, [location]);
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -108,34 +111,36 @@ const WeatherSection = () => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6 text-blue-900 font-cool">Weather Information</h2>
-      <div className="mb-2 text-blue-900 font-cool text-lg">Location: {city}</div>
-      <div className="mb-8 bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-xl">
-        <h3 className="text-xl font-semibold mb-4 text-blue-800 font-cool">Current Weather</h3>
-        <div className="grid grid-cols-2 gap-4">
+    <div className="w-full">
+      <h2 className="text-xl font-bold mb-4 text-gray-900 font-cool">🌤️ Weather Information</h2>
+      {city && (
+        <div className="mb-4 text-gray-800 text-sm font-semibold">📍 {city}</div>
+      )}
+      <div className="mb-6 bg-gradient-to-br from-purple-50 to-blue-50 p-4 sm:p-6 rounded-lg border-2 border-purple-200">
+        <h3 className="text-lg font-semibold mb-4 text-gray-900 font-cool">Current Weather</h3>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <div className="space-y-2">
-            <p className="text-gray-600 font-cool">Temperature</p>
-            <p className="text-3xl font-bold text-blue-900 font-cool">{currentWeather.current.temp_c}°C</p>
+            <p className="text-gray-700 font-cool font-semibold">Temperature</p>
+            <p className="text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.temp_c}°C</p>
           </div>
           <div className="space-y-2">
-            <p className="text-gray-600 font-cool">Humidity</p>
-            <p className="text-3xl font-bold text-blue-900 font-cool">{currentWeather.current.humidity}%</p>
+            <p className="text-gray-700 font-cool font-semibold">Humidity</p>
+            <p className="text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.humidity}%</p>
           </div>
           <div className="space-y-2">
-            <p className="text-gray-600 font-cool">Precipitation</p>
-            <p className="text-3xl font-bold text-blue-900 font-cool">{currentWeather.current.precip_mm}mm</p>
+            <p className="text-gray-700 font-cool font-semibold">Precipitation</p>
+            <p className="text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.precip_mm}mm</p>
           </div>
           <div className="space-y-2">
-            <p className="text-gray-600 font-cool">Condition</p>
-            <p className="text-xl font-semibold text-blue-900 font-cool">{currentWeather.current.condition.text}</p>
+            <p className="text-gray-700 font-cool font-semibold">Condition</p>
+            <p className="text-xl font-semibold text-gray-900 font-cool">{currentWeather.current.condition.text}</p>
           </div>
         </div>
       </div>
 
       <div>
-        <h3 className="text-xl font-semibold mb-4 text-blue-800 font-cool">3-Day Forecast</h3>
-        <div className="h-64">
+        <h3 className="text-lg font-semibold mb-4 text-gray-900 font-cool">3-Day Forecast</h3>
+        <div className="h-48 sm:h-64">
           <Line 
             data={forecastData} 
             options={{

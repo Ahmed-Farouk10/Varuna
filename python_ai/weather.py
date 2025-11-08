@@ -12,12 +12,37 @@ class WeatherService:
     def __init__(self):
         self.api_key = os.getenv('WEATHER_API_KEY')
         self.base_url = "http://api.weatherapi.com/v1"
-        self.client = MongoClient(os.getenv('MONGODB_URI'))
-        self.db = self.client['irrigation_db']
-        self.weather_collection = self.db['weather']
+        
+        if not self.api_key:
+            print("WARNING: WEATHER_API_KEY not found in environment variables!")
+            print("Weather API features will not work without a valid API key.")
+        
+        mongodb_uri = os.getenv('MONGODB_URI')
+        if not mongodb_uri:
+            print("WARNING: MONGODB_URI not found in environment variables!")
+            print("Database features will not work without a valid MongoDB connection.")
+            self.client = None
+            self.db = None
+            self.weather_collection = None
+        else:
+            try:
+                self.client = MongoClient(mongodb_uri)
+                self.db = self.client['irrigation_db']
+                self.weather_collection = self.db['weather']
+            except Exception as e:
+                print(f"WARNING: Failed to connect to MongoDB: {e}")
+                self.client = None
+                self.db = None
+                self.weather_collection = None
 
     def get_current_weather(self, location: str) -> Dict[str, Any]:
         """Fetch current weather data for a location"""
+        if not self.api_key:
+            return {
+                "error": "WEATHER_API_KEY not configured",
+                "message": "Please set WEATHER_API_KEY in your .env file to fetch weather data."
+            }
+        
         try:
             response = requests.get(
                 f"{self.base_url}/current.json",
@@ -25,17 +50,49 @@ class WeatherService:
                     "key": self.api_key,
                     "q": location,
                     "aqi": "no"
-                }
+                },
+                timeout=10
             )
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                return {
+                    "error": "Invalid API key",
+                    "message": "The Weather API key is invalid. Please check your WEATHER_API_KEY in .env file."
+                }
+            elif e.response.status_code == 400:
+                return {
+                    "error": "Invalid location",
+                    "message": f"Could not find weather data for location: {location}"
+                }
+            else:
+                return {
+                    "error": f"HTTP {e.response.status_code}: {str(e)}",
+                    "message": "Failed to fetch weather data from API."
+                }
+        except requests.exceptions.RequestException as e:
+            return {
+                "error": f"Request failed: {str(e)}",
+                "message": "Failed to connect to weather API. Please check your internet connection."
+            }
         except Exception as e:
-            return {"error": str(e)}
+            return {
+                "error": str(e),
+                "message": "An unexpected error occurred while fetching weather data."
+            }
 
     def save_weather_data(self, city, weather_data):
         """
         Save weather data to MongoDB
         """
+        if self.weather_collection is None:
+            return None  # MongoDB not configured
+        
+        # Check if weather_data has an error
+        if 'error' in weather_data:
+            return None  # Don't save error responses
+        
         try:
             weather_doc = {
                 'city': city,
@@ -50,12 +107,16 @@ class WeatherService:
             self.weather_collection.insert_one(weather_doc)
             return weather_doc
         except Exception as e:
-            raise Exception(f"Error saving weather data: {str(e)}")
+            print(f"Warning: Failed to save weather data to database: {e}")
+            return None  # Don't raise exception, just log warning
 
     def get_weather_history(self, city, limit=10):
         """
         Get historical weather data for a city
         """
+        if self.weather_collection is None:
+            return []  # Return empty list if MongoDB not configured
+        
         try:
             history = list(self.weather_collection.find(
                 {'city': city},
@@ -63,7 +124,8 @@ class WeatherService:
             ).sort('timestamp', -1).limit(limit))
             return history
         except Exception as e:
-            raise Exception(f"Error fetching weather history: {str(e)}")
+            print(f"Warning: Failed to fetch weather history: {e}")
+            return []  # Return empty list instead of raising exception
 
     def get_irrigation_recommendation(self, city):
         """
@@ -103,6 +165,12 @@ class WeatherService:
 
     def get_forecast(self, location: str, days: int = 3) -> Dict[str, Any]:
         """Fetch forecast data for a location"""
+        if not self.api_key:
+            return {
+                "error": "WEATHER_API_KEY not configured",
+                "message": "Please set WEATHER_API_KEY in your .env file to fetch weather forecast."
+            }
+        
         try:
             response = requests.get(
                 f"{self.base_url}/forecast.json",
@@ -111,18 +179,47 @@ class WeatherService:
                     "q": location,
                     "days": days,
                     "aqi": "no"
-                }
+                },
+                timeout=10
             )
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                return {
+                    "error": "Invalid API key",
+                    "message": "The Weather API key is invalid. Please check your WEATHER_API_KEY in .env file."
+                }
+            elif e.response.status_code == 400:
+                return {
+                    "error": "Invalid location",
+                    "message": f"Could not find weather forecast for location: {location}"
+                }
+            else:
+                return {
+                    "error": f"HTTP {e.response.status_code}: {str(e)}",
+                    "message": "Failed to fetch weather forecast from API."
+                }
+        except requests.exceptions.RequestException as e:
+            return {
+                "error": f"Request failed: {str(e)}",
+                "message": "Failed to connect to weather API. Please check your internet connection."
+            }
         except Exception as e:
-            return {"error": str(e)}
+            return {
+                "error": str(e),
+                "message": "An unexpected error occurred while fetching weather forecast."
+            }
 
     def close(self):
         """
         Close MongoDB connection
         """
-        self.client.close()
+        if self.client:
+            try:
+                self.client.close()
+            except Exception as e:
+                print(f"Warning: Error closing MongoDB connection: {e}")
 
 def get_weather_data() -> Dict[str, Any]:
     """Get current weather data for the default location"""

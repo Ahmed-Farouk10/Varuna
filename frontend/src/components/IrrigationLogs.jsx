@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
-const IrrigationLogs = () => {
+const IrrigationLogs = ({ fieldId = 'field_001' }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,8 +12,6 @@ const IrrigationLogs = () => {
     const fetchLogs = async () => {
       try {
         setLoading(true);
-        // Use a default field ID for demonstration
-        const fieldId = 'field_001';
         const response = await axios.get(`${API_URL}/api/irrigation/history/${fieldId}`);
         setLogs(response.data);
         setLoading(false);
@@ -25,7 +23,7 @@ const IrrigationLogs = () => {
     };
 
     fetchLogs();
-  }, []);
+  }, [fieldId]);
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -46,10 +44,10 @@ const IrrigationLogs = () => {
   );
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6 text-blue-900">Irrigation Logs</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+    <div className="w-full">
+      <h2 className="text-xl font-bold mb-4 text-gray-900 font-cool">💧 Irrigation Logs</h2>
+      <div className="overflow-x-auto -mx-2 sm:mx-0">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Field ID</th>

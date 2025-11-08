@@ -1,4 +1,5 @@
 import os
+import requests
 from typing import Dict, Any
 from autogen import AssistantAgent, UserProxyAgent, register_function
 from dotenv import load_dotenv
@@ -93,10 +94,15 @@ load_dotenv()
 
 # Groq configuration
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+
+if not GROQ_API_KEY:
+    print("WARNING: GROQ_API_KEY not found in environment variables!")
+    print("AI chat features will not work without a valid Groq API key.")
+
 llm_config = {
     "config_list": [{
         "model": "llama-3.3-70b-versatile",
-        "api_key": GROQ_API_KEY,
+        "api_key": GROQ_API_KEY or "dummy-key",  # Use dummy if not set to prevent crash
         "base_url": "https://api.groq.com/openai/v1",
         "api_type": "openai"
     }],
@@ -156,85 +162,90 @@ soil_agent.register_function(function_map={"get_soil_moisture": get_soil_moistur
 crop_agent.register_function(function_map={"get_crop_status": get_crop_status})
 irrigation_agent.register_function(function_map={"control_irrigation": control_irrigation})
 
-def run_irrigation_analysis(field_id: str, location: str, user_message: str = None):
-    """
-    Run the complete irrigation analysis process
-    """
-    try:
-        # Get current data
-        weather_data = get_weather_forecast(location)
-        soil_data = get_soil_moisture(field_id)
-        crop_data = get_crop_status(field_id)
+# Groq API configuration (FREE TIER AVAILABLE)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-        # Check for errors in data
-        if 'error' in weather_data:
-            return {"error": f"Weather data error: {weather_data['error']}"}
-        if 'error' in soil_data:
-            return {"error": f"Soil data error: {soil_data['error']}"}
-        if 'error' in crop_data:
-            return {"error": f"Crop data error: {crop_data['error']}"}
-
-        # Initialize irrigation system
-        irrigation_system = IrrigationSystem()
-
-        # Calculate water requirement
-        water_requirement = irrigation_system.calculate_water_requirement(
-            weather_data, soil_data, crop_data
-        )
-
-        if 'error' in water_requirement:
-            return {"error": f"Water requirement error: {water_requirement['error']}"}
-
-        # Make irrigation decision
-        decision = irrigation_system.make_irrigation_decision(
-            field_id, water_requirement['water_requirement']
-        )
-
-        if 'error' in decision:
-            return {"error": f"Irrigation decision error: {decision['error']}"}
-
-        # Prepare response message
-        response_message = f"Analyzing irrigation needs for field {field_id} in {location}."
-        if user_message:
-            response_message += f"\nUser query: {user_message}"
-
-        # Initialize conversation with irrigation agent
-        messages = []
-        
-        # Initiate chat and capture messages
-        chat_result = user_proxy.initiate_chat(
-            irrigation_agent,
-            message=f"""{response_message}
-            
-            Current data:
-            - Weather: {weather_data}
-            - Soil: {soil_data}
-            - Crop: {crop_data}
-            - Water Requirement: {water_requirement}
-            - Irrigation Decision: {decision}
-            
-            Please coordinate with other agents to make the best irrigation decision and respond to the user's query."""
-        )
-
-        # Extract messages from chat history
-        # Note: chat_messages is a dict with recipient as key
-        chat_history = user_proxy.chat_messages.get(irrigation_agent, [])
-        for msg in chat_history:
-            content = msg.get("content", "")
-            if content and not content.rstrip().endswith("TERMINATE"):
-                messages.append(content)
-
-        # Return structured response
-        return {
-            "field_id": field_id,
-            "location": location,
-            "user_message": user_message,
-            "weather_data": weather_data,
-            "soil_data": soil_data,
-            "crop_data": crop_data,
-            "water_requirement": water_requirement,
-            "irrigation_decision": decision,
-            "recommendation": messages[-1] if messages else "No recommendation available"
+def groq_query(prompt, history=None):
+    """Query Groq API for AI responses. Groq offers a free tier with fast inference."""
+    if not GROQ_API_KEY:
+        return "AI assistant is not configured. Please set GROQ_API_KEY in your .env file.\n\nTo get a free API key:\n1. Visit https://console.groq.com/\n2. Sign up for a free account\n3. Create an API key\n4. Add GROQ_API_KEY=your_key_here to your .env file"
+    
+    # Build messages array for chat completion
+    messages = [
+        {
+            "role": "system",
+            "content": "You are an expert irrigation and agriculture assistant. Provide helpful, concise, and practical answers about farming, irrigation, weather, soil, and crops."
         }
+    ]
+    
+    # Add conversation history
+    if history:
+        for h in history:
+            role = h.get('role', 'user')
+            content = h.get('content', '')
+            if role in ['user', 'assistant']:
+                messages.append({"role": role, "content": content})
+    
+    # Add current user message
+    messages.append({"role": "user", "content": prompt})
+    
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": "llama-3.1-8b-instant",  # Fast and free model
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 512,
+        "top_p": 1,
+        "stream": False
+    }
+    
+    try:
+        response = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=30)
+        
+        if response.status_code == 401:
+            return "Invalid GROQ_API_KEY. Please check your API key in the .env file.\n\nGet a free key at: https://console.groq.com/"
+        elif response.status_code == 429:
+            return "Rate limit exceeded. Please wait a moment and try again. (Groq free tier has rate limits)"
+        elif not response.ok:
+            return f"API error: {response.status_code}. Please check your GROQ_API_KEY or try again later."
+        
+        data = response.json()
+        
+        if 'choices' in data and len(data['choices']) > 0:
+            text = data['choices'][0]['message']['content'].strip()
+            return text if text else "I understand your question, but I'm having trouble generating a response. Please try rephrasing."
+        else:
+            return "Unexpected response format from AI service. Please try again."
+            
+    except requests.exceptions.Timeout:
+        return "Request timed out. Please try again."
+    except requests.exceptions.RequestException as e:
+        return f"Network error: {str(e)}. Please check your internet connection."
     except Exception as e:
-        return {"error": f"Failed to run irrigation analysis: {str(e)}"}
+        return f"Error: {str(e)}. Please try again."
+
+def run_irrigation_analysis(field_id, location, user_message=None, history=None):
+    if not GROQ_API_KEY:
+        return {"error": "No Groq API key configured. Please set GROQ_API_KEY in your .env file.\n\nGet a free API key at: https://console.groq.com/"}
+    
+    greetings = ['hi', 'hello', 'hey', 'السلام عليكم', 'مرحبا', 'aloha', 'hola', 'bonjour', 'ciao']
+    if user_message and user_message.strip().lower() in greetings:
+        return {'recommendation': "Hello! I'm your irrigation assistant. How can I help you today?"}
+    
+    # Build context-aware prompt with system info
+    location_context = f"Field {field_id}" + (f" in {location}" if location else "")
+    sys_info = f"Context: {location_context}. You help with weather analysis, soil monitoring, crop management, and irrigation scheduling."
+    
+    # Add user's question
+    user_question = user_message or "How can you help with irrigation?"
+    prompt = f"{sys_info}\n\nUser: {user_question}"
+    
+    # Get AI response with conversation history
+    assistant_reply = groq_query(prompt, history)
+    
+    return {"recommendation": assistant_reply}

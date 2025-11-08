@@ -4,18 +4,20 @@ import { Link } from 'react-router-dom';
 
 function LandingPage() {
   return (
-    <div className="w-full h-screen fixed">
+    <div className="w-full h-screen fixed inset-0 overflow-hidden">
       <Spline
-        className="absolute w-full h-full pointer-events-none z-0"
+        className="absolute inset-0 w-full h-full pointer-events-none z-0"
         scene="https://prod.spline.design/l0-CxSgB4Tm9Qxyz/scene.splinecode"
       />
-      <div className="absolute w-full h-full flex flex-col justify-center items-center z-10">
-        <h1 className="text-header text-[#A49FFF]/80 drop-shadow-md  shadow-black  font-cool m-0">Varuna</h1>
+      <div className="absolute inset-0 w-full h-full flex flex-col justify-center items-center z-10 px-4">
+        <h1 className="text-6xl sm:text-8xl md:text-header text-[#A49FFF]/90 drop-shadow-lg font-cool m-0 text-center">
+          Varuna
+        </h1>
         <Link
           to="/home"
-          className="mt-6 px-6 py-2 bg-[#A49FFF] font-bold text-white  no-underline mr-10 hover:text-black font-cool rounded-full text-3xl hover:bg-[#B8E6D8] transition-all "
+          className="mt-8 px-8 py-4 bg-[#A49FFF] font-bold text-white no-underline hover:text-black font-cool rounded-full text-lg sm:text-xl md:text-2xl hover:bg-[#B8E6D8] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
         >
-          Go to Home
+          Go to Dashboard
         </Link>
       </div>
     </div>

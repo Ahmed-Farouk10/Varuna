@@ -37,7 +37,7 @@ const mockSoilData = Array.from({ length: 7 }, (_, index) => {
   };
 });
 
-const SoilMoistureChart = () => {
+const SoilMoistureChart = ({ fieldId = 'field_001' }) => {
   const [soilData, setSoilData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -46,8 +46,7 @@ const SoilMoistureChart = () => {
     const fetchSoilData = async () => {
       try {
         setLoading(true);
-        const fieldId = 'field_001';
-        const response = await axios.get(`${API_URL}//soil/${fieldId}`);
+        const response = await axios.get(`${API_URL}/api/soil/${fieldId}`);
         setSoilData(response.data);
         setLoading(false);
       } catch (err) {
@@ -60,7 +59,7 @@ const SoilMoistureChart = () => {
     };
 
     fetchSoilData();
-  }, []);
+  }, [fieldId]);
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -89,14 +88,14 @@ const SoilMoistureChart = () => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6 text-blue-900">Soil Moisture Trend</h2>
+    <div className="w-full">
+      <h2 className="text-xl font-bold mb-4 text-gray-900 font-cool">🌱 Soil Moisture Trend</h2>
       {error && (
         <div className="text-yellow-600 text-center p-2 bg-yellow-100 rounded mb-4">
           {error}
         </div>
       )}
-      <div className="h-64">
+      <div className="h-48 sm:h-64">
         <Line 
           data={chartData} 
           options={{

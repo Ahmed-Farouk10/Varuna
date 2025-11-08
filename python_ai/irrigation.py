@@ -10,12 +10,32 @@ load_dotenv()
 
 class IrrigationSystem:
     def __init__(self):
-        self.mongo_client = MongoClient(os.getenv('MONGODB_URI'))
-        self.db = self.mongo_client['irrigation_db']
-        self.irrigation_collection = self.db['irrigation_logs']
-        self.settings_collection = self.db['irrigation_settings']
-        self.soil_collection = self.db['soil_data']
-        self.crop_collection = self.db['crop_data']
+        mongodb_uri = os.getenv('MONGODB_URI')
+        if not mongodb_uri:
+            print("WARNING: MONGODB_URI not found in environment variables!")
+            print("Database features will not work without a valid MongoDB connection.")
+            self.mongo_client = None
+            self.db = None
+            self.irrigation_collection = None
+            self.settings_collection = None
+            self.soil_collection = None
+            self.crop_collection = None
+        else:
+            try:
+                self.mongo_client = MongoClient(mongodb_uri)
+                self.db = self.mongo_client['irrigation_db']
+                self.irrigation_collection = self.db['irrigation_logs']
+                self.settings_collection = self.db['irrigation_settings']
+                self.soil_collection = self.db['soil_data']
+                self.crop_collection = self.db['crop_data']
+            except Exception as e:
+                print(f"WARNING: Failed to connect to MongoDB: {e}")
+                self.mongo_client = None
+                self.db = None
+                self.irrigation_collection = None
+                self.settings_collection = None
+                self.soil_collection = None
+                self.crop_collection = None
 
     def _convert_to_dict(self, doc):
         """
@@ -37,6 +57,15 @@ class IrrigationSystem:
         """
         Get soil data for a field
         """
+        if self.soil_collection is None:
+            # Return default soil data if MongoDB not configured
+            return {
+                'field_id': field_id,
+                'moisture': 30.0,  # percentage
+                'temperature': 20.0,  # celsius
+                'ph': 6.5
+            }
+        
         try:
             soil_data = self.soil_collection.find_one({'field_id': field_id})
             if not soil_data:
@@ -47,15 +76,34 @@ class IrrigationSystem:
                     'temperature': 20.0,  # celsius
                     'ph': 6.5
                 }
-                self.soil_collection.insert_one(soil_data)
+                try:
+                    self.soil_collection.insert_one(soil_data)
+                except Exception as insert_error:
+                    print(f"Warning: Failed to insert soil data: {insert_error}")
             return self._convert_to_dict(soil_data)
         except Exception as e:
-            return {'error': str(e)}
+            print(f"Warning: Error getting soil data: {e}")
+            return {
+                'field_id': field_id,
+                'moisture': 30.0,
+                'temperature': 20.0,
+                'ph': 6.5
+            }
 
     def get_crop_data(self, field_id: str) -> Dict[str, Any]:
         """
         Get crop data for a field
         """
+        if self.crop_collection is None:
+            # Return default crop data if MongoDB not configured
+            return {
+                'field_id': field_id,
+                'type': 'wheat',
+                'growth_stage': 'vegetative',
+                'health_status': 'good',
+                'water_requirement': 5.0  # mm per day
+            }
+        
         try:
             crop_data = self.crop_collection.find_one({'field_id': field_id})
             if not crop_data:
@@ -67,10 +115,20 @@ class IrrigationSystem:
                     'health_status': 'good',
                     'water_requirement': 5.0  # mm per day
                 }
-                self.crop_collection.insert_one(crop_data)
+                try:
+                    self.crop_collection.insert_one(crop_data)
+                except Exception as insert_error:
+                    print(f"Warning: Failed to insert crop data: {insert_error}")
             return self._convert_to_dict(crop_data)
         except Exception as e:
-            return {'error': str(e)}
+            print(f"Warning: Error getting crop data: {e}")
+            return {
+                'field_id': field_id,
+                'type': 'wheat',
+                'growth_stage': 'vegetative',
+                'health_status': 'good',
+                'water_requirement': 5.0
+            }
 
     def calculate_water_requirement(self, weather_data: Dict[str, Any], soil_data: Dict[str, Any], crop_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -155,21 +213,38 @@ class IrrigationSystem:
         """
         try:
             # Get field settings
-            field_settings = self.settings_collection.find_one({'field_id': field_id})
-            if not field_settings:
+            if self.settings_collection is not None:
+                field_settings = self.settings_collection.find_one({'field_id': field_id})
+                if not field_settings:
+                    field_settings = {
+                        'field_id': field_id,
+                        'irrigation_threshold': 2.0,  # mm
+                        'max_duration': 30,  # minutes
+                        'min_interval': 24  # hours
+                    }
+                    try:
+                        self.settings_collection.insert_one(field_settings)
+                    except Exception as insert_error:
+                        print(f"Warning: Failed to insert settings: {insert_error}")
+            else:
+                # Use default settings if MongoDB not configured
                 field_settings = {
                     'field_id': field_id,
-                    'irrigation_threshold': 2.0,  # mm
-                    'max_duration': 30,  # minutes
-                    'min_interval': 24  # hours
+                    'irrigation_threshold': 2.0,
+                    'max_duration': 30,
+                    'min_interval': 24
                 }
-                self.settings_collection.insert_one(field_settings)
 
             # Check last irrigation
-            last_irrigation = self.irrigation_collection.find_one(
-                {'field_id': field_id},
-                sort=[('timestamp', -1)]
-            )
+            last_irrigation = None
+            if self.irrigation_collection is not None:
+                try:
+                    last_irrigation = self.irrigation_collection.find_one(
+                        {'field_id': field_id},
+                        sort=[('timestamp', -1)]
+                    )
+                except Exception as e:
+                    print(f"Warning: Error checking last irrigation: {e}")
 
             # Calculate time since last irrigation
             hours_since_last = 24  # default if no previous irrigation
@@ -234,6 +309,10 @@ class IrrigationSystem:
         """
         Log irrigation action to database
         """
+        if self.irrigation_collection is None:
+            print("Warning: MongoDB not configured, cannot log irrigation action")
+            return False
+        
         try:
             log_entry = {
                 'field_id': field_id,
@@ -253,6 +332,9 @@ class IrrigationSystem:
         """
         Get irrigation history for a field
         """
+        if self.irrigation_collection is None:
+            return []  # Return empty list if MongoDB not configured
+        
         try:
             history = list(self.irrigation_collection.find(
                 {'field_id': field_id},
@@ -260,10 +342,15 @@ class IrrigationSystem:
             ).limit(10))
             return self._convert_to_dict(history)
         except Exception as e:
-            return {'error': str(e)}
+            print(f"Warning: Error getting irrigation history: {e}")
+            return []  # Return empty list instead of error
 
     def close(self):
         """
         Close database connection
         """
-        self.mongo_client.close() 
+        if self.mongo_client:
+            try:
+                self.mongo_client.close()
+            except Exception as e:
+                print(f"Warning: Error closing MongoDB connection: {e}") 
