@@ -11,26 +11,45 @@ const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
-  // Ensure sidebar starts closed on mount
+  // Ensure sidebar starts closed on mount (Safari fix)
   useEffect(() => {
     setSidebarOpen(false);
+    // Force close on mount for Safari
+    const timer = setTimeout(() => {
+      setSidebarOpen(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Prevent body scroll when sidebar is open on mobile
+  // Prevent body scroll when sidebar is open on mobile (Safari-compatible)
   useEffect(() => {
     if (sidebarOpen) {
-      document.body.style.overflow = 'hidden';
+      // Save current scroll position for Safari
+      const scrollY = window.scrollY;
       document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      // Prevent iOS Safari bounce
+      document.body.style.touchAction = 'none';
     } else {
-      document.body.style.overflow = '';
+      // Restore scroll position for Safari
+      const scrollY = document.body.style.top;
       document.body.style.position = '';
+      document.body.style.top = '';
       document.body.style.width = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
     }
     return () => {
-      document.body.style.overflow = '';
       document.body.style.position = '';
+      document.body.style.top = '';
       document.body.style.width = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
     };
   }, [sidebarOpen]);
 
@@ -50,6 +69,10 @@ const Layout = ({ children }) => {
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           onTouchEnd={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -57,7 +80,9 @@ const Layout = ({ children }) => {
           }}
           style={{ 
             touchAction: 'manipulation',
-            WebkitTapHighlightColor: 'transparent'
+            WebkitTapHighlightColor: 'transparent',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none'
           }}
         />
       )}
@@ -70,7 +95,14 @@ const Layout = ({ children }) => {
         style={{
           willChange: 'transform',
           backfaceVisibility: 'hidden',
-          ...(sidebarOpen ? {} : { pointerEvents: 'none' })
+          WebkitBackfaceVisibility: 'hidden',
+          ...(sidebarOpen ? { 
+            pointerEvents: 'auto',
+            visibility: 'visible'
+          } : { 
+            pointerEvents: 'none',
+            visibility: 'hidden'
+          })
         }}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
@@ -83,6 +115,10 @@ const Layout = ({ children }) => {
               e.preventDefault();
               e.stopPropagation();
               setSidebarOpen(false);
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
             }}
             onTouchEnd={(e) => {
               e.preventDefault();
@@ -97,9 +133,11 @@ const Layout = ({ children }) => {
             style={{ 
               touchAction: 'manipulation',
               WebkitTapHighlightColor: 'transparent',
+              WebkitTouchCallout: 'none',
               cursor: 'pointer',
               userSelect: 'none',
-              WebkitUserSelect: 'none'
+              WebkitUserSelect: 'none',
+              WebkitAppearance: 'none'
             }}
             aria-label="Close menu"
           >
