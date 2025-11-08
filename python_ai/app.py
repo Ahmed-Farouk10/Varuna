@@ -380,7 +380,17 @@ def handle_message(data):
 if __name__ == '__main__':
     try:
         # Get port from environment variable (Railway provides this) or default to 5001
-        port = int(os.environ.get('PORT', 5001))
+        port_str = os.environ.get('PORT', '5001')
+        try:
+            port = int(port_str)
+            # Validate port is in valid range
+            if port < 0 or port > 65535:
+                raise ValueError(f"Port {port} is out of range. Must be between 0 and 65535.")
+        except ValueError as e:
+            print(f"Invalid PORT value: {port_str}. Using default port 5001.")
+            print(f"Error: {e}")
+            port = 5001
+        
         # Use 0.0.0.0 to accept connections from all interfaces (required for Railway)
         socketio.run(app, host='0.0.0.0', port=port, debug=False)
     finally:
