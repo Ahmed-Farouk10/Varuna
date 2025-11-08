@@ -57,3 +57,6 @@ frontend/dist/
 frontend/.env.local
 DEPLOYMENT_CHECKLIST.md
 DEPLOYMENT.md
+# .gitignore
+.env
+.env.*
