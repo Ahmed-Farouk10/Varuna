@@ -20,8 +20,13 @@ load_dotenv()
 def test_mongodb_connection():
     """Test MongoDB connection and display database info"""
     
-    # Get MongoDB URI from environment or use default
-    mongodb_uri = os.getenv('MONGODB_URI') or "mongodb+srv://ahmedayman10_:AHMEDKING2004ah@varuna.jhmrflr.mongodb.net/irrigation_db?retryWrites=true&w=majority&appName=Varuna"
+    # Get MongoDB URI from environment variables only
+    mongodb_uri = os.getenv('MONGODB_URI')
+    
+    if not mongodb_uri:
+        print("[ERROR] MONGODB_URI not found in environment variables!")
+        print("Please set MONGODB_URI in your .env file.")
+        return False
     
     print("=" * 60)
     print("MongoDB Connection Test")

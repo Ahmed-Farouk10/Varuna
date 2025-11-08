@@ -46,17 +46,35 @@ Thumbs.db
 # Python AI specific
 python_ai/venv/
 python_ai/__pycache__/
+python_ai/.env
+python_ai/*.env
 
 # Backend specific
 backend/node_modules/
 backend/.env
+backend/*.env
 
 # Frontend specific
 frontend/node_modules/
 frontend/dist/
 frontend/.env.local
+frontend/.env
+frontend/*.env
+
+# Test files that might contain secrets
+*test*.py
+*test*.js
+test_*.py
+test_*.js
+
+# Deployment files
 DEPLOYMENT_CHECKLIST.md
 DEPLOYMENT.md
-# .gitignore
+
+# Environment variables (all locations)
 .env
 .env.*
+*.env
+.env.local
+.env.production
+.env.development

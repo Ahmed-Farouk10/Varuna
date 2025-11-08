@@ -12,7 +12,13 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection with options
-const uri = process.env.MONGODB_URI || "mongodb+srv://ahmedayman10_:AHMEDKING2004ah@varuna.jhmrflr.mongodb.net/irrigation_db?retryWrites=true&w=majority&appName=Varuna";
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+    console.error('[ERROR] MONGODB_URI not found in environment variables!');
+    console.error('Please set MONGODB_URI in your .env file.');
+    process.exit(1);
+}
 mongoose.connect(uri, {
     serverApi: {
         version: '1',
