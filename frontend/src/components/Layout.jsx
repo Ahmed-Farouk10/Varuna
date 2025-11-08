@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   HomeIcon, 
@@ -11,6 +11,23 @@ const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
+  // Prevent body scroll when sidebar is open on mobile
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [sidebarOpen]);
+
+  // Close sidebar when route changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   const navigation = [
     { name: 'Dashboard', href: '/home', icon: HomeIcon },
   ];
@@ -22,20 +39,36 @@ const Layout = ({ children }) => {
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            setSidebarOpen(false);
+          }}
+          style={{ touchAction: 'manipulation' }}
         />
       )}
 
       {/* Mobile sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:hidden ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 bg-white">
           <h1 className="text-xl font-bold text-[#A49FFF] font-cool">Varuna</h1>
           <button 
-            onClick={() => setSidebarOpen(false)}
-            className="text-gray-500 hover:text-gray-700"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setSidebarOpen(false);
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setSidebarOpen(false);
+            }}
+            className="text-gray-700 hover:text-gray-900 active:bg-gray-100 p-2 rounded-lg transition-colors"
+            style={{ touchAction: 'manipulation' }}
+            aria-label="Close menu"
           >
-            <XMarkIcon className="h-6 w-6" />
+            <XMarkIcon className="h-7 w-7" />
           </button>
         </div>
         <nav className="mt-4 px-2">
@@ -43,14 +76,20 @@ const Layout = ({ children }) => {
             <Link
               key={item.name}
               to={item.href}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg mb-1 ${
+              onClick={(e) => {
+                setSidebarOpen(false);
+              }}
+              onTouchStart={(e) => {
+                setSidebarOpen(false);
+              }}
+              className={`flex items-center px-3 py-3 text-base font-medium rounded-lg mb-1 active:bg-purple-100 ${
                 location.pathname === item.href
                   ? 'bg-purple-100 text-[#A49FFF] border-l-4 border-[#A49FFF]'
                   : 'text-gray-700 hover:bg-purple-50'
               }`}
+              style={{ touchAction: 'manipulation' }}
             >
-              <item.icon className="mr-3 h-5 w-5" />
+              <item.icon className="mr-3 h-6 w-6" />
               {item.name}
             </Link>
           ))}
@@ -85,14 +124,25 @@ const Layout = ({ children }) => {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b-2 border-purple-200/50 shadow-md">
+        <header className={`sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b-2 border-purple-200/50 shadow-md ${sidebarOpen ? 'lg:z-20' : ''}`}>
           <div className="flex h-16 items-center justify-between px-4 sm:px-6">
             <button
               type="button"
-              className="text-gray-500 hover:text-gray-700 lg:hidden"
-              onClick={() => setSidebarOpen(true)}
+              className="text-gray-500 hover:text-gray-700 active:text-gray-900 lg:hidden p-2 -ml-2 rounded-lg active:bg-gray-100 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSidebarOpen(true);
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSidebarOpen(true);
+              }}
+              style={{ touchAction: 'manipulation' }}
+              aria-label="Open menu"
             >
-              <Bars3Icon className="h-6 w-6" />
+              <Bars3Icon className="h-7 w-7" />
             </button>
             <div className="flex-1 lg:ml-0">
               <h2 className="text-lg font-semibold text-gray-900 font-cool">
