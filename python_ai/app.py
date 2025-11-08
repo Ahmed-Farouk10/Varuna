@@ -379,7 +379,10 @@ def handle_message(data):
 
 if __name__ == '__main__':
     try:
-        socketio.run(app, port=5001, debug=True)
+        # Get port from environment variable (Railway provides this) or default to 5001
+        port = int(os.environ.get('PORT', 5001))
+        # Use 0.0.0.0 to accept connections from all interfaces (required for Railway)
+        socketio.run(app, host='0.0.0.0', port=port, debug=False)
     finally:
         weather_service.close()
         irrigation_system.close() 

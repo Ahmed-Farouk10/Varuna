@@ -11,15 +11,26 @@ const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
+  // Ensure sidebar starts closed on mount
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, []);
+
   // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {
     if (sidebarOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
     } else {
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, [sidebarOpen]);
 
@@ -39,36 +50,60 @@ const Layout = ({ children }) => {
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
-          onTouchStart={(e) => {
+          onTouchEnd={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             setSidebarOpen(false);
           }}
-          style={{ touchAction: 'manipulation' }}
+          style={{ 
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent'
+          }}
         />
       )}
 
       {/* Mobile sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div 
+        className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        style={{
+          willChange: 'transform',
+          backfaceVisibility: 'hidden',
+          ...(sidebarOpen ? {} : { pointerEvents: 'none' })
+        }}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
         <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200 bg-white">
           <h1 className="text-xl font-bold text-[#A49FFF] font-cool">Varuna</h1>
           <button 
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setSidebarOpen(false);
             }}
-            onTouchStart={(e) => {
+            onTouchEnd={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setSidebarOpen(false);
             }}
-            className="text-gray-700 hover:text-gray-900 active:bg-gray-100 p-2 rounded-lg transition-colors"
-            style={{ touchAction: 'manipulation' }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="text-gray-700 hover:text-gray-900 active:bg-gray-100 p-3 rounded-lg transition-colors touch-manipulation"
+            style={{ 
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
+              cursor: 'pointer',
+              userSelect: 'none',
+              WebkitUserSelect: 'none'
+            }}
             aria-label="Close menu"
           >
-            <XMarkIcon className="h-7 w-7" />
+            <XMarkIcon className="h-7 w-7 pointer-events-none" />
           </button>
         </div>
         <nav className="mt-4 px-2">
@@ -77,9 +112,11 @@ const Layout = ({ children }) => {
               key={item.name}
               to={item.href}
               onClick={(e) => {
+                e.stopPropagation();
                 setSidebarOpen(false);
               }}
-              onTouchStart={(e) => {
+              onTouchEnd={(e) => {
+                e.stopPropagation();
                 setSidebarOpen(false);
               }}
               className={`flex items-center px-3 py-3 text-base font-medium rounded-lg mb-1 active:bg-purple-100 ${
@@ -87,7 +124,10 @@ const Layout = ({ children }) => {
                   ? 'bg-purple-100 text-[#A49FFF] border-l-4 border-[#A49FFF]'
                   : 'text-gray-700 hover:bg-purple-50'
               }`}
-              style={{ touchAction: 'manipulation' }}
+              style={{ 
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent'
+              }}
             >
               <item.icon className="mr-3 h-6 w-6" />
               {item.name}
@@ -134,12 +174,16 @@ const Layout = ({ children }) => {
                 e.stopPropagation();
                 setSidebarOpen(true);
               }}
-              onTouchStart={(e) => {
+              onTouchEnd={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setSidebarOpen(true);
               }}
-              style={{ touchAction: 'manipulation' }}
+              style={{ 
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
+                cursor: 'pointer'
+              }}
               aria-label="Open menu"
             >
               <Bars3Icon className="h-7 w-7" />

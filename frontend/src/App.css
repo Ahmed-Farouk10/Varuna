@@ -75,6 +75,26 @@ html, body {
   overflow-x: hidden;
 }
 
+/* Mobile sidebar fixes */
+@media (max-width: 1023px) {
+  /* Ensure sidebar is properly hidden when closed */
+  .mobile-sidebar-closed {
+    transform: translateX(-100%) !important;
+    visibility: hidden;
+  }
+  
+  /* Prevent sidebar from blocking content */
+  .mobile-sidebar-open {
+    transform: translateX(0) !important;
+    visibility: visible;
+  }
+  
+  /* Ensure overlay doesn't block interactions when sidebar is closed */
+  .sidebar-overlay-hidden {
+    display: none !important;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
