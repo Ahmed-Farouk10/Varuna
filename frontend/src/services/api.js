@@ -1,12 +1,25 @@
+import { createClient } from '@insforge/sdk';
+
 const INSFORGE_BASE = 'https://zufe8vz6.us-east.insforge.app';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODU5MDh9.a7TN-dOxWcrEb4sGRMX3zJoDKTLVZV9VJ8KTtydLhW0';
+
+const client = createClient({
+  baseUrl: INSFORGE_BASE,
+  anonKey: ANON_KEY
+});
 
 async function invoke(slug, body) {
-  const res = await fetch(`${INSFORGE_BASE}/functions/v1/${slug}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+  const { data, error } = await client.functions.invoke(slug, {
+    body,
   });
-  return res.json();
+  
+  if (error) {
+    console.error(`InsForge Edge Function Error (${slug}):`, error);
+    // Graceful fallback to return the error object shape UI expects
+    return { error: error.message || 'Function invocation failed' };
+  }
+  
+  return data;
 }
 
 export const api = {
