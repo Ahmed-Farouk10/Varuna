@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { api } from '../services/api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+// API calls routed through InsForge edge functions
 
 const IrrigationLogs = ({ fieldId = 'field_001' }) => {
   const [logs, setLogs] = useState([]);
@@ -12,8 +13,8 @@ const IrrigationLogs = ({ fieldId = 'field_001' }) => {
     const fetchLogs = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/api/irrigation/history/${fieldId}`);
-        setLogs(response.data);
+        const data = await api.getIrrigationHistory(fieldId);
+        setLogs(data);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch irrigation logs');

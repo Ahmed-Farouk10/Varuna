@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { api } from '../services/api';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -22,7 +23,7 @@ ChartJS.register(
   Legend
 );
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+// API calls routed through InsForge edge functions
 
 // Mock data for 7-day soil moisture history
 const mockSoilData = Array.from({ length: 7 }, (_, index) => {
@@ -46,8 +47,8 @@ const SoilMoistureChart = ({ fieldId = 'field_001' }) => {
     const fetchSoilData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_URL}/api/soil/${fieldId}`);
-        setSoilData(response.data);
+        const data = await api.getSoilData(fieldId);
+        setSoilData(data);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching soil data:', err);

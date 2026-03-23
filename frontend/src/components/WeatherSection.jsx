@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { api } from '../services/api';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -22,7 +23,7 @@ ChartJS.register(
   Legend
 );
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+// API calls routed through InsForge edge functions
 
 const WeatherSection = ({ location }) => {
   const [city, setCity] = useState(location || '');
@@ -35,12 +36,12 @@ const WeatherSection = ({ location }) => {
     const fetchWeatherData = async (cityName) => {
       try {
         setLoading(true);
-        const [currentResponse, forecastResponse] = await Promise.all([
-          axios.get(`${API_URL}/api/weather/${cityName}`),
-          axios.get(`${API_URL}/api/weather/forecast/${cityName}`)
+        const [currentData, forecastData] = await Promise.all([
+          api.getWeather(cityName),
+          api.getForecast(cityName)
         ]);
-        setCurrentWeather(currentResponse.data);
-        setForecast(forecastResponse.data);
+        setCurrentWeather(currentData);
+        setForecast(forecastData);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch weather data');

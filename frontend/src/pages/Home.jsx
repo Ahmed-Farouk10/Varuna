@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '../services/api';
 import Layout from '../components/Layout';
 import WeatherSection from '../components/WeatherSection';
 import IrrigationLogs from '../components/IrrigationLogs';
@@ -45,16 +46,12 @@ const Home = () => {
           return;
         }
 
-        // Fetch weather data
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-        const weatherResponse = await fetch(`${API_URL}/api/weather/${location}`);
-        if (!weatherResponse.ok) throw new Error('Failed to fetch weather data');
-        const weatherData = await weatherResponse.json();
+        // Fetch weather data via InsForge
+        const weatherData = await api.getWeather(location);
+        if (weatherData.error) throw new Error(weatherData.error);
         
-        // Fetch soil data
-        const soilResponse = await fetch(`${API_URL}/api/soil/${fieldId}`);
-        if (!soilResponse.ok) throw new Error('Failed to fetch soil data');
-        const soilData = await soilResponse.json();
+        // Fetch soil data via InsForge
+        const soilData = await api.getSoilData(fieldId);
 
         const latestSoil = soilData[0] || { moisture: 42, temperature: 20, ph: 6.5 };
 
