@@ -16,8 +16,12 @@ async function invoke(slug, body) {
   
   if (error) {
     console.error(`InsForge Edge Function Error (${slug}):`, error);
-    // Graceful fallback to return the error object shape UI expects
     return { error: error.message || 'Function invocation failed' };
+  }
+  
+  // Unwrap InsForge response wrapper if present
+  if (data && typeof data === 'object' && 'value' in data) {
+    return data.value;
   }
   
   return data;
