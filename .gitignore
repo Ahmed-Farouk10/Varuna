@@ -92,3 +92,5 @@ DEPLOYMENT.md
 .roo
 .trae
 .windsurf
+.vercel
+.env*
