@@ -12,12 +12,16 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      console.error('ErrorBoundary caught:', this.state.error);
       return (
-        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-lg p-8 max-w-lg w-full mx-4 transform hover:scale-105 transition-transform duration-300">
             <h2 className="text-2xl font-bold text-blue-900 mb-4 font-cool">
               Oops! Something went wrong
             </h2>
+            <pre className="text-sm text-red-600 bg-red-50 p-3 rounded mb-4 overflow-auto max-h-40 whitespace-pre-wrap break-all">
+              {this.state.error?.message || 'Unknown error'}
+            </pre>
             <p className="text-gray-600 mb-6">
               We're working on fixing this. Please try again in a moment.
             </p>

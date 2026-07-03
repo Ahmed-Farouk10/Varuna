@@ -40,6 +40,8 @@ const WeatherSection = ({ location }) => {
           api.getWeather(cityName),
           api.getForecast(cityName)
         ]);
+        if (currentData?.error) throw new Error(currentData.error);
+        if (forecastData?.error) throw new Error(forecastData.error);
         setCurrentWeather(currentData);
         setForecast(forecastData);
         setLoading(false);
@@ -95,14 +97,21 @@ const WeatherSection = ({ location }) => {
     </div>
   );
   
-  if (!currentWeather || !forecast) return null;
+  if (!currentWeather?.current || !forecast?.forecast?.forecastday) {
+    console.warn('Weather data in unexpected format:', { currentWeather, forecast });
+    return (
+      <div className="text-yellow-600 text-center p-4">
+        Weather data unavailable in expected format.
+      </div>
+    );
+  }
 
   const forecastData = {
     labels: forecast.forecast.forecastday.map(day => day.date),
     datasets: [
       {
         label: 'Precipitation (mm)',
-        data: forecast.forecast.forecastday.map(day => day.day.totalprecip_mm),
+        data: forecast.forecast.forecastday.map(day => day?.day?.totalprecip_mm ?? 0),
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         tension: 0.4,
@@ -122,19 +131,19 @@ const WeatherSection = ({ location }) => {
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
           <div className="space-y-1 sm:space-y-2">
             <p className="text-gray-700 font-cool font-semibold text-xs sm:text-sm">Temperature</p>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.temp_c}°C</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.temp_c ?? '--'}°C</p>
           </div>
           <div className="space-y-1 sm:space-y-2">
             <p className="text-gray-700 font-cool font-semibold text-xs sm:text-sm">Humidity</p>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.humidity}%</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.humidity ?? '--'}%</p>
           </div>
           <div className="space-y-1 sm:space-y-2">
             <p className="text-gray-700 font-cool font-semibold text-xs sm:text-sm">Precipitation</p>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.precip_mm}mm</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-900 font-cool">{currentWeather.current.precip_mm ?? '--'}mm</p>
           </div>
           <div className="space-y-1 sm:space-y-2">
             <p className="text-gray-700 font-cool font-semibold text-xs sm:text-sm">Condition</p>
-            <p className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 font-cool">{currentWeather.current.condition.text}</p>
+            <p className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 font-cool">{currentWeather.current.condition?.text ?? '--'}</p>
           </div>
         </div>
       </div>
