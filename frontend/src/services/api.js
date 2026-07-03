@@ -1,7 +1,7 @@
 import { createClient } from '@insforge/sdk';
 
-const INSFORGE_BASE = 'https://zufe8vz6.us-east.insforge.app';
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3OC0xMjM0LTU2NzgtOTBhYi1jZGVmMTIzNDU2NzgiLCJlbWFpbCI6ImFub25AaW5zZm9yZ2UuY29tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyODU5MDh9.a7TN-dOxWcrEb4sGRMX3zJoDKTLVZV9VJ8KTtydLhW0';
+const INSFORGE_BASE = 'https://5utryqc7.us-east.insforge.app';
+const ANON_KEY = 'anon_1738e9c998b3b1a426586247b73f54e570696e405ea5b116ccfb68eb0c714110';
 
 const client = createClient({
   baseUrl: INSFORGE_BASE,
