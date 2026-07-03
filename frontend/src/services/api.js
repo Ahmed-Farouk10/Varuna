@@ -5,7 +5,8 @@ const ANON_KEY = 'anon_1738e9c998b3b1a426586247b73f54e570696e405ea5b116ccfb68eb0
 
 const client = createClient({
   baseUrl: INSFORGE_BASE,
-  anonKey: ANON_KEY
+  anonKey: ANON_KEY,
+  functionsUrl: 'https://5utryqc7.function2.insforge.app'
 });
 
 async function invoke(slug, body) {
