@@ -1,10 +1,6 @@
 @tailwind utilities;
 
 @font-face{
-  font-family: cool;
-  src: url(../fonts/cool.ttf);
-}
-@font-face{
   font-family: flore;
   src: url(../fonts/flore.otf);
 }
