@@ -15,8 +15,15 @@ async function invoke(slug, body) {
   });
   
   if (error) {
+    const msg = typeof error === 'string' ? error : error?.message || error?.error || JSON.stringify(error);
     console.error(`InsForge Edge Function Error (${slug}):`, error);
-    return { error: error.message || 'Function invocation failed' };
+    return { error: msg || 'Function invocation failed' };
+  }
+  
+  // Check for application-level errors in the response data
+  if (data && typeof data === 'object' && data.error) {
+    const appErr = typeof data.error === 'string' ? data.error : data.error?.message || JSON.stringify(data.error);
+    return { error: appErr };
   }
   
   // Unwrap InsForge response wrapper if present
